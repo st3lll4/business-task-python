@@ -1,22 +1,32 @@
 {% extends "base.html" %}
-{% block title %}template test{% endblock %}
-<!--{% block content%}-->
-<!--<h1 align="center">Notes</h1>-->
-<!--<ul class="list-group list-group-flush" id="notes">-->
-<!--  {% for note in user.notes %}-->
-<!--  <li class="list-group-item">-->
-<!--    {{ note.data }}-->
-<!--    <button type="button" class="close" onClick="deleteNote({{ note.id }})">-->
-<!--      <span aria-hidden="true">&times;</span>-->
-<!--    </button>-->
-<!--  </li>-->
-<!--  {% endfor %}-->
-<!--</ul>-->
-<!--<form method="POST">-->
-<!--    <label for="note"></label><textarea name="note" id="note" class="form-control"></textarea>-->
-<!--  <br />-->
-<!--  <div align="center">-->
-<!--    <button type="submit" class="btn btn-primary">Add Note</button>-->
-<!--  </div>-->
-<!--</form>-->
-<!--{% endblock %}-->
+{% block title %}Registry{% endblock %}
+
+{% block content %}  {# Important: We need to wrap our content in a content block #}
+<div class="container mt-4">
+    <h1 class="mb-4">Business registry</h1>
+
+    <div class="search-form">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-auto flex-grow-1">
+                <label for="search">
+                    <input type="text" name="search" class="form-control" placeholder="Search..."/>
+                </label>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-dark">Search</button>
+            </div>
+        </form>
+    </div>
+
+    <ul class="business-list">
+        {% for business in businesses %}
+            <li class="business-item">
+                <a href="{{ url_for('details', id=business.id) }}" class="business-link">
+                    <strong>{{ business.name }}</strong>
+                    <span class="registry-code ml-2">| Registry Code: {{ business.registry_code }}</span>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
