@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 class Business(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
-    registry_code = db.Column(db.String(10), nullable=False, unique=True)
+    registry_code = db.Column(db.String(10), nullable=False)
     total_capital = db.Column(db.Float, nullable=False)
     founding_date = db.Column(db.Date, nullable=False, default=func.now())
     shareholders = relationship('Shareholder', backref='business')

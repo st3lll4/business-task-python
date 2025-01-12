@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, flash, abort
+from flask import Blueprint, render_template, request, jsonify, flash, abort, redirect, url_for
 from flask_wtf import FlaskForm
 from wtforms import StringField, DateField, DecimalField
 from wtforms.validators import DataRequired, Length, NumberRange, ValidationError
@@ -24,12 +24,48 @@ class BusinessForm(FlaskForm):
             raise ValidationError('Founding date cant be in the future')
 
 
+def get_starting_data():
+    business1 = Business(
+        name="Bulbasauri aiand OU",
+        registry_code="1234567",
+        founding_date=date.today(),
+        total_capital=5000
+    )
+    business2 = Business(
+        name="OU Sauruse Pagarikoda",
+        registry_code="9876543",
+        founding_date=date.today(),
+        total_capital=3000
+    )
+    person1 = Person(
+        name="Sigmar",
+        surname="Kirjak",
+        personal_code="12345678987"
+    )
+    person2 = Person(
+        name="Dino",
+        surname="Saur",
+        personal_code="11112222333"
+    )
+    db.session.add(business1)
+    db.session.add(business2)
+    db.session.add(person1)
+    db.session.add(person2)
+
+    db.session.commit()
+
+
 @views.route('/create-business', methods=['GET', 'POST'])
 def create_business():
+
+    if Person.query.count() == 0 and Business.query.count() == 0:
+        get_starting_data()
+
     form = BusinessForm()
 
     persons = Person.query.all()
     businesses = Business.query.all()
+
 
     shareholders_list = [(None, "Select a shareholder")] + \
                         [(f"P_{p.id}", f"{p.name} {p.surname}") for p in persons] + \
@@ -53,10 +89,11 @@ def create_business():
                         })
                         total_shares += float(share_amount)
 
-            if total_shares != form.total_capital.data:
-                flash('Total shares must equal total capital')
-                return render_template('create_business.html',
-                                       form=form, shareholders_list=shareholders_list)
+            #if total_shares != form.total_capital.data:
+            #    flash('Total shares must equal total capital')
+            #    return render_template('create_business.html',
+            #                           form=form, shareholders_list=shareholders_list)
+
 
             try:
                 business = Business(
@@ -68,14 +105,17 @@ def create_business():
                 db.session.add(business)
                 db.session.flush()
 
-                for data in shareholders_data:
+                for data in shareholders_data: # siin tahab sama id/ga lisada need
                     type_id, s_id = data['id'].split('_')
+                    if data:
+                        print(data)
+                    else:
+                        print("i got nothing")
 
                     sh = Shareholder(
                         is_founder=True,
-                        business_id=business.id,
                         person_id=int(s_id) if type_id == 'P' else None,
-                        sh_business_id=int(s_id) if type_id == 'B' else None
+                        business_id=int(s_id) if type_id == 'B' else None
                     )
                     db.session.add(sh)
                     db.session.flush()
@@ -86,13 +126,18 @@ def create_business():
                         share=data['share']
                     )
                     db.session.add(share)
+                    db.session.commit()
 
-                db.session.commit()
-                return jsonify({'success': True, 'business_id': business.id})
+                flash('Business created successfully!', 'success')
+                return redirect(url_for('views.create_business'))  # todo: Redirect to details
+
 
             except Exception as e:
                 db.session.rollback()
-                return jsonify({'success': False, 'error': str(e)})
+                flash(f'Error creating business: {str(e)}', 'error')
+                return render_template('create_business.html',
+                                       form=form,
+                                       shareholders_list=shareholders_list)
 
     return render_template('create_business.html',
                            form=form, shareholders_list=shareholders_list)
