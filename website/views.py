@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
+from flask import Blueprint, render_template, request, jsonify, flash, abort
 from flask_wtf import FlaskForm
-from wtforms import StringField, DateField, DecimalField, SelectField
-from wtforms.validators import DataRequired, Length, NumberRange
-from datetime import datetime
+from wtforms import StringField, DateField, DecimalField
+from wtforms.validators import DataRequired, Length, NumberRange, ValidationError
+from datetime import datetime, date
 from .models import db, Business, Person, Shareholder, Share
+
 
 views = Blueprint('views', __name__)
 
@@ -18,12 +19,15 @@ class BusinessForm(FlaskForm):
     total_capital = DecimalField('Total Capital',
                                  validators=[DataRequired(), NumberRange(min=2500)])
 
+    def validate_founding_date(self, field):
+        if field.data > date.today():
+            raise ValidationError('Founding date cant be in the future')
+
 
 @views.route('/create-business', methods=['GET', 'POST'])
 def create_business():
     form = BusinessForm()
 
-    # Get all possible shareholders for the dropdown
     persons = Person.query.all()
     businesses = Business.query.all()
 
@@ -33,11 +37,9 @@ def create_business():
 
     if request.method == 'POST':
         if form.validate_on_submit():
-            # Get the form data
             shareholders_data = []
             total_shares = 0
 
-            # Process shareholders data from form
             for key in request.form:
                 if key.startswith('shareholder_id_'):
                     index = key.split('_')[-1]
@@ -51,14 +53,12 @@ def create_business():
                         })
                         total_shares += float(share_amount)
 
-            # Validate total shares match total capital
             if total_shares != form.total_capital.data:
                 flash('Total shares must equal total capital')
                 return render_template('create_business.html',
                                        form=form, shareholders_list=shareholders_list)
 
             try:
-                # Create new business
                 business = Business(
                     name=form.business_name.data,
                     registry_code=form.registry_code.data,
@@ -66,9 +66,8 @@ def create_business():
                     total_capital=form.total_capital.data
                 )
                 db.session.add(business)
-                db.session.flush()  # Get business ID without committing
+                db.session.flush()
 
-                # Create shareholders
                 for data in shareholders_data:
                     type_id, s_id = data['id'].split('_')
 
@@ -81,7 +80,6 @@ def create_business():
                     db.session.add(sh)
                     db.session.flush()
 
-                    # Create share record
                     share = Share(
                         shareholder_id=sh.id,
                         business_id=business.id,
@@ -105,6 +103,7 @@ def home():
 
     if search_query:
         businesses = Business.query.filter(Business.name.ilike(f'%{search_query}%')).all()
+        # todo: shareholderite kaudu ka otsima panna
     else:
         businesses = Business.query.all()
 
