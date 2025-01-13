@@ -19,11 +19,6 @@ class BusinessForm(FlaskForm):
     total_capital = DecimalField('Total Capital',
                                  validators=[DataRequired(), NumberRange(min=2500)])
 
-    def validate_founding_date(self, field):
-        if field.data > date.today():
-            raise ValidationError('Founding date cant be in the future')
-
-
 def get_starting_data():
     business1 = Business(
         name="Bulbasauri aiand OU",
@@ -47,10 +42,7 @@ def get_starting_data():
         surname="Saur",
         personal_code="11112222333"
     )
-    db.session.add(business1)
-    db.session.add(business2)
-    db.session.add(person1)
-    db.session.add(person2)
+    db.session.add_all([business1, business2, person1, person2])
 
     db.session.commit()
 
@@ -89,11 +81,26 @@ def create_business():
                         })
                         total_shares += float(share_amount)
 
-            #if total_shares != form.total_capital.data:
-            #    flash('Total shares must equal total capital')
-            #    return render_template('create_business.html',
-            #                           form=form, shareholders_list=shareholders_list)
+            if not shareholders_data:
+                flash('At least one shareholder is required', 'error')
+                return redirect(url_for('views.create_business'))
 
+            if total_shares != form.total_capital.data:
+                flash('Total shares have to be equal to total capital', 'error')
+                return redirect(url_for('views.create_business'))
+
+            if form.founding_date.data > date.today():
+                flash('Founding date cant be in the future', 'error')
+                return redirect(url_for('views.create_business'))
+
+            if form.total_capital.data < 2500:
+                flash('Total capital has to be at least 2500', 'error')
+                return redirect(url_for('views.create_business'))
+
+            shareholder_ids = [data['id'] for data in shareholders_data]
+            if len(shareholder_ids) != len(set(shareholder_ids)):
+                flash('Enter each shareholder once', 'error')
+                return redirect(url_for('views.create_business'))
 
             try:
                 business = Business(
@@ -105,12 +112,8 @@ def create_business():
                 db.session.add(business)
                 db.session.flush()
 
-                for data in shareholders_data: # siin tahab sama id/ga lisada need
+                for data in shareholders_data:
                     type_id, s_id = data['id'].split('_')
-                    if data:
-                        print(data)
-                    else:
-                        print("i got nothing")
 
                     sh = Shareholder(
                         is_founder=True,
@@ -128,9 +131,7 @@ def create_business():
                     db.session.add(share)
                     db.session.commit()
 
-                flash('Business created successfully!', 'success')
-                return redirect(url_for('views.create_business'))  # todo: Redirect to details
-
+                return redirect(url_for('views.details', id=business.id))
 
             except Exception as e:
                 db.session.rollback()
@@ -155,11 +156,9 @@ def home():
     return render_template('home.html', businesses=businesses)
 
 
-@views.route('/details/')
+@views.route('/details/<int:id>')
 def details():
     business_id = request.args.get('id')
-    if not business_id:
-        abort(404)  # Return 404 if no ID provided
 
     business = Business.query.get_or_404(business_id)
     return render_template('details.html', business=business)

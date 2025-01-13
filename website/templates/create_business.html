@@ -4,13 +4,7 @@
 {% block content %}
     <div class="container-fluid h-25 bg-white text-center m-5">
         <h1>Enter details for the new business</h1>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-danger">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+
     </div>
 
     <div class="container">
@@ -149,24 +143,19 @@
                 counter++;
             }
 
-            form.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                try {
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        body: new FormData(form)
-                    });
-                    const data = await response.json();
+            {#form.addEventListener('submit', async (event) => {#}
+            {#    event.preventDefault();#}
+            {#    const response = await fetch(form.action, {#}
+            {#            method: 'POST',#}
+            {#            body: new FormData(form)#}
+            {#        });#}
+            {#        const data = await response.json();#}
+            {##}
+            {#        if (data.success) {#}
+            {#            window.location.href = `/details/`;
+            {#        } else {#}
+            {#            alert('Error creating the business: ' + data.error);#}
+            {#        }#}
 
-                    if (data.success) {
-                        window.location.href = `/details/`;
-                    } else {
-                        alert('Error creating the business: ' + data.error);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error on something else');
-                }
-            });
         </script>
     {% endblock %} {% endblock %}
