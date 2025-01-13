@@ -3,6 +3,7 @@ from re import search
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_wtf import FlaskForm
+from sqlalchemy.orm import aliased
 from wtforms import StringField, DateField, DecimalField
 from wtforms.validators import DataRequired, Length, NumberRange
 from .models import db, Business, Person, Shareholder, Share
@@ -71,6 +72,7 @@ def get_starting_data():
     db.session.add(shareholder2)
 
     db.session.commit()
+
 
 @views.route('/create-business', methods=['GET', 'POST'])
 def create_business():
@@ -179,12 +181,33 @@ def home():
 
     search_query = request.args.get('search', '')
 
+    sh_business = aliased(Business)
+
     if search_query:
-        businesses = db.session.query(Business).filter(Business.name.contains(search_query)).all()
-        businesses += db.session.query(Business).filter(Business.registry_code.contains(search_query)).all()
-        #todo: query by other things too
+        businesses = (db.session.query(Business.id, Business.name, Business.registry_code)
+                      .distinct()
+                      .outerjoin(Share)
+                      .outerjoin(Shareholder)
+                      .outerjoin(Person)
+                      .outerjoin(sh_business,
+                                 sh_business.id == Shareholder.business_id)
+                      .filter(
+            db.or_(
+                Business.name.ilike(f'%{search_query}%'),
+                Business.registry_code.ilike(f'%{search_query}%'),
+                Person.name.ilike(f'%{search_query}%'),
+                Person.surname.ilike(f'%{search_query}%'),
+                Person.personal_code.ilike(f'%{search_query}%'),
+                sh_business.name.ilike(f'%{search_query}%'),
+                sh_business.registry_code.ilike(f'%{search_query}%')
+            ))
+                      .all()
+                      )
     else:
         businesses = Business.query.all()
+
+    if not businesses:
+        flash("no businesses with such info were found!", "error")
 
     return render_template('home.html', businesses=businesses)
 
@@ -198,7 +221,7 @@ def details(id):
             Share,
             Shareholder,
             Person,
-            Business.name.label('business_name')
+            Business
         )
         .join(Shareholder, Share.shareholder_id == Shareholder.id)
         .outerjoin(Person, Shareholder.person_id == Person.id)
@@ -211,14 +234,19 @@ def details(id):
     )
 
     shareholders = []
-    for share, shareholder, person, business_name in shareholders_data:
+    for share, shareholder, person, sh_business in shareholders_data:
         shareholder_info = {
             'share': share.share,
             'is_founder': shareholder.is_founder,
-            'name': f"{person.name} {person.surname}" if person else business_name,
-            'code': person.personal_code if person else business.registry_code,
+            'name': f"{person.name} {person.surname}" if person else sh_business.name,
+            'code': person.personal_code if person else sh_business.registry_code,
             'type': 'P' if person else 'B'
         }
         shareholders.append(shareholder_info)
 
     return render_template('details.html', business=business, shareholders=shareholders)
+
+@views.route('/edit/<int:id>')
+def edit(id):
+    business = Business.query.get_or_404(id)
+    pass

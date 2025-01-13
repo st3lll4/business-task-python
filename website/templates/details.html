@@ -9,15 +9,15 @@
             </div>
             <div class="card-body">
                 <dl class="row business-info">
-                    <dt class="col-sm-3">Registry code:</dt>
+                    <dt class="col-sm-2 text-sm-right font-weight-bold">Registry code:</dt>
                     <dd class="col-sm-9">{{ business.registry_code }}</dd>
 
-                    <dt class="col-sm-3">Total capital:</dt>
+                    <dt class="col-sm-2 text-sm-right font-weight-bold">Total capital:</dt>
                     <dd class="col-sm-9">{{ business.total_capital|int }} €</dd>
-                    <dt class="col-sm-3">Founding date:</dt>
-                    <dd class="col-sm-9">{{ business.founding_date }}</dd>
+                    <dt class="col-sm-2 text-sm-right font-weight-bold">Founding date:</dt>
+                    <dd class="col-sm-9">{{ business.founding_date.strftime('%d.%m.%Y') }}</dd>
 
-                    <dt class="col-sm-3">Shareholders:</dt>
+                    <dt class="col-sm-2 text-sm-right font-weight-bold">Shareholders:</dt>
                     <dd class="col-sm-9">
                         <ul class="shareholder-list">
                             {% for shareholder in shareholders %}
@@ -31,7 +31,7 @@
                                     {% if shareholder.type == "P" %}
                                         <div>Personal code: {{ shareholder.code }}</div>
                                     {% else %}
-                                        <div>Registry code: {{ shareholder.code }}</div>
+                                        <div>Registry code: {{ shareholder.code }} </div>
                                     {% endif %}
                                     <div>Share: {{ shareholder.share|int }} €</div>
                                 </li>

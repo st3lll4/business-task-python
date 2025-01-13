@@ -8,32 +8,32 @@
     </div>
 
     <div class="container">
-        <form method="post" id="createBusinessForm">
+        <form method="post">
             {{ form.csrf_token }}
 
             <div class="row mb-3 justify-content-center">
-                <label for="business_name" class="col-sm-2 col-form-label text-end fw-bold">Name</label>
+                <p class="col-sm-2 text-sm-right font-weight-bold">Name</p>
                 <div class="col-sm-3">
                     {{ form.business_name(class="form-control") }}
                 </div>
             </div>
 
             <div class="row mb-3 justify-content-center">
-                <label for="registry_code" class="col-sm-2 col-form-label text-end fw-bold">Registry code</label>
+                <p class="col-sm-2 text-sm-right font-weight-bold">Registry code</p>
                 <div class="col-sm-3">
                     {{ form.registry_code(class="form-control") }}
                 </div>
             </div>
 
             <div class="row mb-3 justify-content-center">
-                <label for="founding_date" class="col-sm-2 col-form-label text-end fw-bold">Founding date</label>
+                <p class="col-sm-2 text-sm-right font-weight-bold">Founding date</p>
                 <div class="col-sm-3">
                     {{ form.founding_date(class="form-control") }}
                 </div>
             </div>
 
             <div class="row mb-3 justify-content-center">
-                <label for="total_capital" class="col-sm-2 col-form-label text-end fw-bold">Total capital</label>
+                <p class="col-sm-2 text-sm-right font-weight-bold">Total capital</p>
                 <div class="col-sm-3">
                     {{ form.total_capital(class="form-control") }}
                 </div>
@@ -41,7 +41,7 @@
 
             <div id="shareholders-container">
                 <div class="row mb-3 justify-content-center shareholder-entry">
-                    <label class="col-sm-2 col-form-label text-end fw-bold">Shareholder</label>
+                    <p class="col-sm-2 text-sm-right font-weight-bold">Shareholder</p>
                     <div class="col-sm-3">
                         <select class="form-control mb-3" name="shareholder_id_0">
                             {% for value, label in shareholders_list %}
@@ -69,7 +69,6 @@
             const shareholdersContainer = document.getElementById("shareholders-container");
 
             const totalCapitalInput = document.getElementById("total_capital");
-            const form = document.getElementById("createBusinessForm");
 
             let counter = 1;
 
@@ -130,20 +129,6 @@
                 shareholdersContainer.appendChild(newEntry);
                 counter++;
             }
-
-            {#form.addEventListener('submit', async (event) => {#}
-            {#    event.preventDefault();#}
-            {#    const response = await fetch(form.action, {#}
-            {#            method: 'POST',#}
-            {#            body: new FormData(form)#}
-            {#        });#}
-            {#        const data = await response.json();#}
-            {##}
-            {#        if (data.success) {#}
-            {#            window.location.href = `/details/`;
-            {#        } else {#}
-            {#            alert('Error creating the business: ' + data.error);#}
-            {#        }#}
 
         </script>
     {% endblock %} {% endblock %}
