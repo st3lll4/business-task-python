@@ -2,52 +2,44 @@
 {% block title %}{{ business.name }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card business-card">
-        <div class="card-header">
-            <h1 class="h2 mb-0">{{ business.name }}</h1>
-        </div>
-        <div class="card-body">
-            <dl class="row business-info">
-                <dt class="col-sm-3">Registry code:</dt>
-                <dd class="col-sm-9">{{ business.registry_code }}</dd>
+    <div class="container mt-4">
+        <div class="card business-card">
+            <div class="card-header">
+                <h1 class="h2 mb-0">{{ business.name }}</h1>
+            </div>
+            <div class="card-body">
+                <dl class="row business-info">
+                    <dt class="col-sm-3">Registry code:</dt>
+                    <dd class="col-sm-9">{{ business.registry_code }}</dd>
 
-                <dt class="col-sm-3">Total capital:</dt>
-                <dd class="col-sm-9">{{ business.total_capital + "eur" }}</dd>
+                    <dt class="col-sm-3">Total capital:</dt>
+                    <dd class="col-sm-9">{{ business.total_capital|int }} €</dd>
+                    <dt class="col-sm-3">Founding date:</dt>
+                    <dd class="col-sm-9">{{ business.founding_date }}</dd>
 
-                <dt class="col-sm-3">Founding date:</dt>
-                <dd class="col-sm-9">{{ business.founding_date.utctime('%d.%m.%Y') }}</dd>
-
-                <dt class="col-sm-3">Shareholders:</dt>
-                <dd class="col-sm-9">
-                    <ul class="shareholder-list">
-                        {% for shareholder in business.shareholders %}
-                            <li class="shareholder-item">
-                                {% if shareholder.person %}
+                    <dt class="col-sm-3">Shareholders:</dt>
+                    <dd class="col-sm-9">
+                        <ul class="shareholder-list">
+                            {% for shareholder in shareholders %}
+                                <li class="shareholder-item">
                                     <div>
-                                        <strong>{{ shareholder.person.name }} {{ shareholder.person.surname }}</strong>
+                                        <strong>{{ shareholder.name }}</strong>
                                         {% if shareholder.is_founder %}
                                             <span class="founder-badge">Founder</span>
                                         {% endif %}
                                     </div>
-                                    <div>Personal code: {{ shareholder.person.personal_code }}</div>
-                                    <div>Share: {{ "${:,.2f}".format(share.share) }}</div>
-                                {% else %}
-                                    <div>
-                                        <strong>{{ shareholder.business.name }}</strong>
-                                        {% if shareholder.is_founder %}
-                                            <span class="founder-badge">Founder</span>
-                                        {% endif %}
-                                    </div>
-                                    <div>Registry code: {{ shareholder.business.registry_code }}</div>
-                                    <div>Share: {{ "${:,.2f}".format(share.share) }}</div>
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </dd>
-            </dl>
+                                    {% if shareholder.type == "P" %}
+                                        <div>Personal code: {{ shareholder.code }}</div>
+                                    {% else %}
+                                        <div>Registry code: {{ shareholder.code }}</div>
+                                    {% endif %}
+                                    <div>Share: {{ shareholder.share|int }} €</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </dd>
+                </dl>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}

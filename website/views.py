@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template, request, jsonify, flash, abort, redirect, url_for
+from datetime import datetime, date
+from re import search
+
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_wtf import FlaskForm
 from wtforms import StringField, DateField, DecimalField
-from wtforms.validators import DataRequired, Length, NumberRange, ValidationError
-from datetime import datetime, date
+from wtforms.validators import DataRequired, Length, NumberRange
 from .models import db, Business, Person, Shareholder, Share
-
 
 views = Blueprint('views', __name__)
 
@@ -19,6 +20,7 @@ class BusinessForm(FlaskForm):
     total_capital = DecimalField('Total Capital',
                                  validators=[DataRequired(), NumberRange(min=2500)])
 
+
 def get_starting_data():
     business1 = Business(
         name="Bulbasauri aiand OU",
@@ -26,12 +28,7 @@ def get_starting_data():
         founding_date=date.today(),
         total_capital=5000
     )
-    business2 = Business(
-        name="OU Sauruse Pagarikoda",
-        registry_code="9876543",
-        founding_date=date.today(),
-        total_capital=3000
-    )
+
     person1 = Person(
         name="Sigmar",
         surname="Kirjak",
@@ -42,14 +39,41 @@ def get_starting_data():
         surname="Saur",
         personal_code="11112222333"
     )
-    db.session.add_all([business1, business2, person1, person2])
+
+    share1 = Share(
+        shareholder_id=1,
+        business_id=1,
+        share=1500
+    )
+
+    share2 = Share(
+        shareholder_id=2,
+        business_id=1,
+        share=3500
+    )
+
+    shareholder1 = Shareholder(
+        is_founder=True,
+        person_id=1
+    )
+
+    shareholder2 = Shareholder(
+        is_founder=True,
+        person_id=2
+    )
+
+    db.session.add(business1)
+    db.session.add(person1)
+    db.session.add(person2)
+    db.session.add(share1)
+    db.session.add(share2)
+    db.session.add(shareholder1)
+    db.session.add(shareholder2)
 
     db.session.commit()
 
-
 @views.route('/create-business', methods=['GET', 'POST'])
 def create_business():
-
     if Person.query.count() == 0 and Business.query.count() == 0:
         get_starting_data()
 
@@ -58,9 +82,7 @@ def create_business():
     persons = Person.query.all()
     businesses = Business.query.all()
 
-
-    shareholders_list = [(None, "Select a shareholder")] + \
-                        [(f"P_{p.id}", f"{p.name} {p.surname}") for p in persons] + \
+    shareholders_list = [(None, "Select a shareholder")] + [(f"P_{p.id}", f"{p.name} {p.surname}") for p in persons] + \
                         [(f"B_{b.id}", b.name) for b in businesses]
 
     if request.method == 'POST':
@@ -75,11 +97,17 @@ def create_business():
                     shareholder_id = request.form.get(key)
 
                     if shareholder_id and share_amount:
+                        if int(share_amount) < 1:
+                            flash('Enter a share for each shareholder', 'error')
+                            return redirect(url_for('views.create_business'))
+                        if not search(r'^[0-9]+$', share_amount):
+                            flash('Shares have to be a number', 'error')
+                            return redirect(url_for('views.create_business'))
                         shareholders_data.append({
                             'id': shareholder_id,
-                            'share': float(share_amount)
+                            'share': int(share_amount)
                         })
-                        total_shares += float(share_amount)
+                        total_shares += int(share_amount)
 
             if not shareholders_data:
                 flash('At least one shareholder is required', 'error')
@@ -107,7 +135,7 @@ def create_business():
                     name=form.business_name.data,
                     registry_code=form.registry_code.data,
                     founding_date=form.founding_date.data,
-                    total_capital=form.total_capital.data
+                    total_capital=int(form.total_capital.data)
                 )
                 db.session.add(business)
                 db.session.flush()
@@ -143,13 +171,18 @@ def create_business():
     return render_template('create_business.html',
                            form=form, shareholders_list=shareholders_list)
 
+
 @views.route('/')
 def home():
+    if Person.query.count() == 0 and Business.query.count() == 0:
+        get_starting_data()
+
     search_query = request.args.get('search', '')
 
     if search_query:
-        businesses = Business.query.filter(Business.name.ilike(f'%{search_query}%')).all()
-        # todo: shareholderite kaudu ka otsima panna
+        businesses = db.session.query(Business).filter(Business.name.contains(search_query)).all()
+        businesses += db.session.query(Business).filter(Business.registry_code.contains(search_query)).all()
+        #todo: query by other things too
     else:
         businesses = Business.query.all()
 
@@ -157,8 +190,35 @@ def home():
 
 
 @views.route('/details/<int:id>')
-def details():
-    business_id = request.args.get('id')
+def details(id):
+    business = Business.query.get_or_404(id)
 
-    business = Business.query.get_or_404(business_id)
-    return render_template('details.html', business=business)
+    shareholders_data = (
+        db.session.query(
+            Share,
+            Shareholder,
+            Person,
+            Business.name.label('business_name')
+        )
+        .join(Shareholder, Share.shareholder_id == Shareholder.id)
+        .outerjoin(Person, Shareholder.person_id == Person.id)
+        .outerjoin(
+            Business,
+            Shareholder.business_id == Business.id
+        )
+        .filter(Share.business_id == id)
+        .all()
+    )
+
+    shareholders = []
+    for share, shareholder, person, business_name in shareholders_data:
+        shareholder_info = {
+            'share': share.share,
+            'is_founder': shareholder.is_founder,
+            'name': f"{person.name} {person.surname}" if person else business_name,
+            'code': person.personal_code if person else business.registry_code,
+            'type': 'P' if person else 'B'
+        }
+        shareholders.append(shareholder_info)
+
+    return render_template('details.html', business=business, shareholders=shareholders)

@@ -2,31 +2,29 @@
 {% block title %}Registry{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Business registry</h1>
+    <div class="container mt-4">
+        <h1 class="mb-4">Business registry</h1>
 
-    <div class="search-form">
-        <form method="get" class="row g-3 align-items-center">
-            <div class="col-auto flex-grow-1">
-                <label for="search">
+        <div class="search-form">
+            <form method="get" class="row g-3 align-items-center">
+                <div class="col-auto flex-grow-1">
                     <input type="text" name="search" class="form-control" placeholder="Search..."/>
-                </label>
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-dark">Search</button>
-            </div>
-        </form>
-    </div>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-dark">Search</button>
+                </div>
+            </form>
+        </div>
 
-    <ul class="business-list">
-        {% for business in businesses %}
-            <li class="business-item">
-                <a href="" class="business-link">
-                    <strong>{{ business.name }}</strong>
-                    <span class="registry-code ml-2">| Registry Code: {{ business.registry_code }}</span>
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-</div>
+        <ul class="business-list">
+            {% for business in businesses %}
+                <li class="business-item">
+                    <a href="/details/{{ business.id }}" class="business-link">
+                        <strong>{{ business.name }}</strong>
+                        <span class="registry-code ml-2">| Registry Code: {{ business.registry_code }}</span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 {% endblock %}

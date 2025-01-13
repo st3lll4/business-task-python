@@ -15,9 +15,6 @@
                 <label for="business_name" class="col-sm-2 col-form-label text-end fw-bold">Name</label>
                 <div class="col-sm-3">
                     {{ form.business_name(class="form-control") }}
-                    {% if form.business_name.errors %}
-                        <div class="text-danger">{{ form.business_name.errors[0] }}</div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -25,9 +22,6 @@
                 <label for="registry_code" class="col-sm-2 col-form-label text-end fw-bold">Registry code</label>
                 <div class="col-sm-3">
                     {{ form.registry_code(class="form-control") }}
-                    {% if form.registry_code.errors %}
-                        <div class="text-danger">{{ form.registry_code.errors[0] }}</div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -35,9 +29,6 @@
                 <label for="founding_date" class="col-sm-2 col-form-label text-end fw-bold">Founding date</label>
                 <div class="col-sm-3">
                     {{ form.founding_date(class="form-control") }}
-                    {% if form.founding_date.errors %}
-                        <div class="text-danger">{{ form.founding_date.errors[0] }}</div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -45,9 +36,6 @@
                 <label for="total_capital" class="col-sm-2 col-form-label text-end fw-bold">Total capital</label>
                 <div class="col-sm-3">
                     {{ form.total_capital(class="form-control") }}
-                    {% if form.total_capital.errors %}
-                        <div class="text-danger">{{ form.total_capital.errors[0] }}</div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -61,7 +49,7 @@
                             {% endfor %}
                         </select>
                         <input type="number" class="form-control" name="share_amount_0"
-                               placeholder="Number of shares" min="1"/>
+                               placeholder="Share amount" min="1"/>
                     </div>
                 </div>
             </div>
