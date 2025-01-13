@@ -24,21 +24,21 @@ class BusinessForm(FlaskForm):
 
 def get_starting_data():
     business1 = Business(
-        name="Bulbasauri aiand OU",
+        name="Bulbasauri Aiand OÜ",
         registry_code="1234567",
         founding_date=date.today(),
         total_capital=5000
     )
 
     person1 = Person(
-        name="Sigmar",
-        surname="Kirjak",
+        name="Triinu",
+        surname="Lepa",
         personal_code="12345678987"
     )
     person2 = Person(
         name="Dino",
-        surname="Saur",
-        personal_code="11112222333"
+        surname="Saurus",
+        personal_code="8023003352"
     )
 
     share1 = Share(
