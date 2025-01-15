@@ -1,6 +1,6 @@
 # Hi!
 
-This is a repository for a test task for a new employer. 
+This is a repository for a test task. 
 
 ## What it does
 A web application that lets users:
